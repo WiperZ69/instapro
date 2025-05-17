@@ -18,7 +18,7 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
                 <div class="file-upload-image-container">
                   <img class="file-upload-image" src="${imageUrl}" alt="Загруженное изображение">
                   <button class="file-upload-remove-button button">Заменить фото</button>
-               registerUser                </div>
+                </div>
               `
 									: `
                 <label class="file-upload-label secondary-button">
