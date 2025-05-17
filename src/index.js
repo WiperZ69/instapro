@@ -1,10 +1,11 @@
 import '../public/styles.css'
 import '../public/ui-kit.css'
-import { getPosts } from './api.js'
+import { addPost, getPosts, getUserPosts } from './api.js'
 import { renderAddPostPageComponent } from './components/add-post-page-component.js'
 import { renderAuthPageComponent } from './components/auth-page-component.js'
 import { renderLoadingPageComponent } from './components/loading-page-component.js'
 import { renderPostsPageComponent } from './components/posts-page-component.js'
+import { renderUserPostsPageComponent } from './components/user-posts-page-component.js'
 import {
 	getUserFromLocalStorage,
 	removeUserFromLocalStorage,
@@ -33,9 +34,6 @@ export const logout = () => {
 	goToPage(POSTS_PAGE)
 }
 
-/**
- * Включает страницу приложения
- */
 export const goToPage = (newPage, data) => {
 	if (
 		[
@@ -47,7 +45,6 @@ export const goToPage = (newPage, data) => {
 		].includes(newPage)
 	) {
 		if (newPage === ADD_POSTS_PAGE) {
-			/* Если пользователь не авторизован, то отправляем его на страницу авторизации перед добавлением поста */
 			page = user ? ADD_POSTS_PAGE : AUTH_PAGE
 			return renderApp()
 		}
@@ -69,11 +66,20 @@ export const goToPage = (newPage, data) => {
 		}
 
 		if (newPage === USER_POSTS_PAGE) {
-			// @@TODO: реализовать получение постов юзера из API
-			console.log('Открываю страницу пользователя: ', data.userId)
-			page = USER_POSTS_PAGE
-			posts = []
-			return renderApp()
+			page = LOADING_PAGE
+			renderApp()
+
+			return getUserPosts({ userId: data.userId, token: getToken() })
+				.then(userPosts => {
+					page = USER_POSTS_PAGE
+					posts = userPosts
+					renderApp(data.userId)
+				})
+				.catch(error => {
+					console.error('Ошибка загрузки постов пользователя:', error)
+					alert('Не удалось загрузить посты пользователя. Попробуйте снова.')
+					goToPage(POSTS_PAGE)
+				})
 		}
 
 		page = newPage
@@ -85,7 +91,7 @@ export const goToPage = (newPage, data) => {
 	throw new Error('страницы не существует')
 }
 
-const renderApp = () => {
+const renderApp = userId => {
 	const appEl = document.getElementById('app')
 	if (page === LOADING_PAGE) {
 		return renderLoadingPageComponent({
@@ -112,9 +118,19 @@ const renderApp = () => {
 		return renderAddPostPageComponent({
 			appEl,
 			onAddPostClick({ description, imageUrl }) {
-				// @TODO: реализовать добавление поста в API
-				console.log('Добавляю пост...', { description, imageUrl })
-				goToPage(POSTS_PAGE)
+				addPost({
+					description,
+					imageUrl,
+					userId: user?.login,
+					token: getToken(),
+				})
+					.then(() => {
+						goToPage(POSTS_PAGE)
+					})
+					.catch(error => {
+						console.error('Ошибка при добавлении поста:', error.message)
+						alert(`Не удалось добавить пост: ${error.message}`)
+					})
 			},
 		})
 	}
@@ -126,9 +142,11 @@ const renderApp = () => {
 	}
 
 	if (page === USER_POSTS_PAGE) {
-		// @TODO: реализовать страницу с фотографиями отдельного пользователя
-		appEl.innerHTML = 'Здесь будет страница фотографий пользователя'
-		return
+		return renderUserPostsPageComponent({
+			appEl,
+			posts,
+			userId,
+		})
 	}
 }
 

@@ -5,8 +5,6 @@ import { USER_POSTS_PAGE } from '../routes.js'
 import { renderHeaderComponent } from './header-component.js'
 
 export function renderPostsPageComponent({ appEl }) {
-	console.log('Актуальный список постов:', posts)
-
 	const postsHtml = posts
 		.map(post => {
 			return `
