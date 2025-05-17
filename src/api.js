@@ -91,25 +91,88 @@ export function addPost({ description, imageUrl, userId, token }) {
 		imageUrl,
 		userId,
 	}
-	const jsonBody = JSON.stringify(requestBody, null, 2)
 	return fetch(postsHost, {
 		method: 'POST',
 		headers: {
 			Authorization: token,
 		},
-		body: jsonBody,
+		body: JSON.stringify(requestBody),
+	}).then(response => {
+		if (!response.ok) {
+			return response.text().then(text => {
+				let errorData
+				try {
+					errorData = JSON.parse(text)
+				} catch {
+					errorData = { message: text || `Ошибка ${response.status}` }
+				}
+				throw new Error(errorData.message || `Ошибка ${response.status}`)
+			})
+		}
+		return response.json()
 	})
-		.then(response => {
-			if (!response.ok) {
-				return response.json().then(errorData => {
-					console.error('Ответ сервера:', errorData)
-					throw new Error(errorData.message || `Ошибка ${response.status}`)
-				})
+}
+
+export function likePost({ postId, token }) {
+	return fetch(`${postsHost}/${postId}/like`, {
+		method: 'POST',
+		headers: {
+			Authorization: token,
+		},
+	}).then(response => {
+		if (response.status === 401) {
+			throw new Error('Нет авторизации')
+		}
+		if (!response.ok) {
+			return response.text().then(text => {
+				let errorData
+				try {
+					errorData = JSON.parse(text)
+				} catch {
+					errorData = { message: text || `Ошибка ${response.status}` }
+				}
+				throw new Error(errorData.message || `Ошибка ${response.status}`)
+			})
+		}
+		return response.json().then(data => {
+			if (!data || !data.post || !data.post.id) {
+				throw new Error(
+					'Недействительный ответ сервера: отсутствует поле post.id'
+				)
 			}
-			return response.json()
+			return data.post
 		})
-		.catch(error => {
-			console.error('Ошибка запроса:', error)
-			throw error
+	})
+}
+
+export function unlikePost({ postId, token }) {
+	return fetch(`${postsHost}/${postId}/dislike`, {
+		method: 'POST',
+		headers: {
+			Authorization: token,
+		},
+	}).then(response => {
+		if (response.status === 401) {
+			throw new Error('Нет авторизации')
+		}
+		if (!response.ok) {
+			return response.text().then(text => {
+				let errorData
+				try {
+					errorData = JSON.parse(text)
+				} catch {
+					errorData = { message: text || `Ошибка ${response.status}` }
+				}
+				throw new Error(errorData.message || `Ошибка ${response.status}`)
+			})
+		}
+		return response.json().then(data => {
+			if (!data || !data.post || !data.post.id) {
+				throw new Error(
+					'Недействительный ответ сервера: отсутствует поле post.id'
+				)
+			}
+			return data.post
 		})
+	})
 }

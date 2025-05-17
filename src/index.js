@@ -23,7 +23,7 @@ export let user = getUserFromLocalStorage()
 export let page = null
 export let posts = []
 
-const getToken = () => {
+export const getToken = () => {
 	const token = user ? `Bearer ${user.token}` : undefined
 	return token
 }
@@ -53,6 +53,7 @@ export const goToPage = (newPage, data) => {
 			page = LOADING_PAGE
 			renderApp()
 
+			posts = [] // Очищаем массив перед загрузкой
 			return getPosts({ token: getToken() })
 				.then(newPosts => {
 					page = POSTS_PAGE
@@ -60,23 +61,29 @@ export const goToPage = (newPage, data) => {
 					renderApp()
 				})
 				.catch(error => {
-					console.error(error)
+					alert('Не удалось загрузить посты. Попробуйте снова.')
 					goToPage(POSTS_PAGE)
 				})
 		}
 
 		if (newPage === USER_POSTS_PAGE) {
+			const userId = data?.userId
+			if (!userId) {
+				alert('Ошибка: ID пользователя не указан')
+				return goToPage(POSTS_PAGE)
+			}
+
 			page = LOADING_PAGE
 			renderApp()
 
-			return getUserPosts({ userId: data.userId, token: getToken() })
+			posts = [] // Очищаем массив перед загрузкой
+			return getUserPosts({ userId, token: getToken() })
 				.then(userPosts => {
 					page = USER_POSTS_PAGE
 					posts = userPosts
-					renderApp(data.userId)
+					renderApp({ userId })
 				})
 				.catch(error => {
-					console.error('Ошибка загрузки постов пользователя:', error)
 					alert('Не удалось загрузить посты пользователя. Попробуйте снова.')
 					goToPage(POSTS_PAGE)
 				})
@@ -91,7 +98,7 @@ export const goToPage = (newPage, data) => {
 	throw new Error('страницы не существует')
 }
 
-const renderApp = userId => {
+const renderApp = (data = {}) => {
 	const appEl = document.getElementById('app')
 	if (page === LOADING_PAGE) {
 		return renderLoadingPageComponent({
@@ -128,7 +135,6 @@ const renderApp = userId => {
 						goToPage(POSTS_PAGE)
 					})
 					.catch(error => {
-						console.error('Ошибка при добавлении поста:', error.message)
 						alert(`Не удалось добавить пост: ${error.message}`)
 					})
 			},
@@ -142,6 +148,7 @@ const renderApp = userId => {
 	}
 
 	if (page === USER_POSTS_PAGE) {
+		const userId = data.userId
 		return renderUserPostsPageComponent({
 			appEl,
 			posts,
