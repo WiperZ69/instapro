@@ -1,6 +1,5 @@
 import { loginUser, registerUser } from '../api.js'
 import { renderHeaderComponent } from './header-component.js'
-import { sanitizeInput } from './replace.js'
 import { renderUploadImageComponent } from './upload-image-component.js'
 
 /**
@@ -100,12 +99,8 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 
 			if (isLoginMode) {
 				// Обработка входа
-				const login = sanitizeInput(
-					document.getElementById('login-input').value.trim()
-				)
-				const password = sanitizeInput(
-					document.getElementById('password-input').value.trim()
-				)
+				const login = document.getElementById('login-input').value
+				const password = document.getElementById('password-input').value
 
 				if (!login) {
 					alert('Введите логин')
@@ -127,15 +122,9 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 					})
 			} else {
 				// Обработка регистрации
-				const login = sanitizeInput(
-					document.getElementById('login-input').value.trim()
-				)
-				const name = sanitizeInput(
-					document.getElementById('name-input').value.trim()
-				)
-				const password = sanitizeInput(
-					document.getElementById('password-input').value.trim()
-				)
+				const login = document.getElementById('login-input').value
+				const name = document.getElementById('name-input').value
+				const password = document.getElementById('password-input').value
 
 				if (!name) {
 					alert('Введите имя')

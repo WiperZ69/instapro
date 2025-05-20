@@ -4,6 +4,8 @@ import { likePost, unlikePost } from '../api.js'
 import { getToken, goToPage, posts, user } from '../index.js'
 import { AUTH_PAGE, POSTS_PAGE, USER_POSTS_PAGE } from '../routes.js'
 import { renderHeaderComponent } from './header-component.js'
+import { formatLikesText } from './posts-page-component.js'
+import { sanitizeInput } from './replace.js'
 
 export function renderUserPostsPageComponent({ appEl, userId }) {
 	const filteredPosts = posts.filter(post => post.user.id === userId)
@@ -13,15 +15,6 @@ export function renderUserPostsPageComponent({ appEl, userId }) {
 		return
 	}
 
-	const formatLikesText = likes => {
-		if (likes.length === 0) return 'Нравится: 0'
-		if (likes.length === 1) return `Нравится: ${likes[0].name}`
-		if (likes.length === 2)
-			return `Нравится: ${likes[0].name}, ${likes[1].name}`
-		return `Нравится: ${likes[0].name}, ${likes[1].name} и ещё ${
-			likes.length - 2
-		}`
-	}
 	const appHtml = filteredPosts
 		.map(post => {
 			const createdAt = parseISO(post.createdAt)
@@ -32,20 +25,30 @@ export function renderUserPostsPageComponent({ appEl, userId }) {
 
 			return `
         <div class="post">
-          <div class="post-header" data-user-id="${post.user.id}">
-            <img src="${post.user.imageUrl}" class="post-header__user-image">
-            <p class="post-header__user-name">${post.user.name}</p>
+          <div class="post-header" data-user-id="${sanitizeInput(
+						post.user.id
+					)}">
+            <img src="${sanitizeInput(
+							post.user.imageUrl
+						)}" class="post-header__user-image">
+            <p class="post-header__user-name">${sanitizeInput(
+							post.user.name
+						)}</p>
           </div>
           <div class="post-image-wrapper">
-            <div class="post-image-blur" style="background-image: url(${
+            <div class="post-image-blur" style="background-image: url(${sanitizeInput(
 							post.imageUrl
-						})"></div>
+						)})"></div>
             <div class="post-image-container">
-              <img src="${post.imageUrl}" class="post-image" alt="post">
+              <img src="${sanitizeInput(
+								post.imageUrl
+							)}" class="post-image" alt="post">
             </div>
           </div>
           <div class="post-likes">
-            <button data-post-id="${post.id}" class="like-button">
+            <button data-post-id="${sanitizeInput(
+							post.id
+						)}" class="like-button">
               <img src="./assets/images/${
 								post.isLiked ? 'like-active.svg' : 'like-not-active.svg'
 							}">
@@ -53,8 +56,8 @@ export function renderUserPostsPageComponent({ appEl, userId }) {
             <p class="post-likes-text">${formatLikesText(post.likes)}</p>
           </div>
           <p class="post-text">
-            <span class="user-name">${post.user.name}</span>
-            ${post.description}
+            <span class="user-name">${sanitizeInput(post.user.name)}</span>
+            ${sanitizeInput(post.description)}
           </p>
           <p class="post-date">${timeAgo}</p>
         </div>`

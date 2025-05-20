@@ -1,6 +1,5 @@
 import { uploadImage } from '../api.js'
 import { renderHeaderComponent } from './header-component.js'
-import { sanitizeInput } from './replace.js'
 
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
 	let imageUrl = ''
@@ -49,9 +48,9 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
 		})
 
 		document.getElementById('add-button').addEventListener('click', () => {
-			const description = sanitizeInput(
-				document.getElementById('description-input').value.trim()
-			)
+			const description = document
+				.getElementById('description-input')
+				.value.trim()
 			if (!description || !imageUrl) {
 				alert('Заполните описание и выберите фото!')
 				return
